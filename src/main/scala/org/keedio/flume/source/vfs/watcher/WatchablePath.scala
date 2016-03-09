@@ -48,7 +48,7 @@ class WatchablePath(uri: String, refresh: Int, start: Int, regex: Regex) {
 
 
   // the number of threads to keep in the pool, even if they are idle
-  private val corePoolSize = 1
+  private val corePoolSize = 5
   private val scheduler: ScheduledExecutorService = Executors.newScheduledThreadPool(corePoolSize)
   //Creates and executes a one-shot action that becomes enabled after the given delay
   private val tasks: ScheduledFuture[_] = scheduler.schedule(

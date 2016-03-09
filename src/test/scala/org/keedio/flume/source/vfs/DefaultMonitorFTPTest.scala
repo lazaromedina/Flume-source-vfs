@@ -42,8 +42,11 @@ class DefaultMonitorFTPTest {
                         println("file deleted: " + fileChangeEvent.getFile.getName.getBaseName)
 
                   override def fileChanged(fileChangeEvent: FileChangeEvent): Unit = {
+
                         println("file changed: " + fileChangeEvent.getFile.getName.getBaseName + " " +
-                          fileChangeEvent.getFile.getContent.getLastModifiedTime)
+                          fileChangeEvent.getFile.getContent.getLastModifiedTime + " "
+                          + fileChangeEvent.getFile.getContent.getFile.isContentOpen + " "
+                        + fileChangeEvent.getFile.getContent.getSize)
 
                   }
 
@@ -57,12 +60,12 @@ class DefaultMonitorFTPTest {
             fm.addFile(listendir)
             fm.setDelay(1) //if not set or set to 0 seconds, file changed is not fired so it is not detected.
             fm.start()
-            Thread.sleep(100000)
+            Thread.sleep(1000000)
 
             try {
                   file1.createFile()
                   Thread.sleep(1000)
-                  file1.delete()
+                  //file1.delete()
             } catch {
                   case e: IOException => println("I/O: ", e)
             }
