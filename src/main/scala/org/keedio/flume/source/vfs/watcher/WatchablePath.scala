@@ -46,7 +46,6 @@ class WatchablePath(uri: String, refresh: Int, start: Int, regex: Regex) {
   defaultMonitor.setRecursive(true)
   defaultMonitor.setDelay(secondsToMiliseconds(refresh))
 
-
   // the number of threads to keep in the pool, even if they are idle
   private val corePoolSize = 5
   private val scheduler: ScheduledExecutorService = Executors.newScheduledThreadPool(corePoolSize)

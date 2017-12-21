@@ -10,6 +10,7 @@ import org.apache.flume.conf.Configurable
 import org.apache.flume.event.SimpleEvent
 import org.apache.flume.source.AbstractSource
 import org.apache.flume.{ChannelException, Context, Event, EventDrivenSource}
+import org.keedio.flume.source.vfs.metrics.SourceCounter
 import org.keedio.flume.source.vfs.watcher.{StateEvent, StateListener, WatchablePath}
 import org.slf4j.{Logger, LoggerFactory}
 
@@ -24,7 +25,7 @@ class SourceVFS extends AbstractSource with Configurable with EventDrivenSource 
 
   val LOG: Logger = LoggerFactory.getLogger(classOf[SourceVFS])
   val mapOfFiles = mutable.HashMap[String, Long]()
-
+  val sourceVFScounter = new SourceCounter("SOURCE." + getName);
   val executor: ExecutorService = Executors.newFixedThreadPool(20)
 
   val listener = new StateListener {
@@ -51,6 +52,7 @@ class SourceVFS extends AbstractSource with Configurable with EventDrivenSource 
                 if (readStream(inputStream, fileName, 0)) {
                   mapOfFiles += (fileName -> fileSize)
                   LOG.info("end processing: " + fileName)
+                  sourceVFScounter.incrementFilesCount()
                   //FileUtils.moveFileToDirectory(new File("/home/zipi/cdr/" + fileName), new File("/home/zipi/final"), false)
                   //LOG.info("moving file: " + fileName)
 
@@ -118,14 +120,19 @@ class SourceVFS extends AbstractSource with Configurable with EventDrivenSource 
   }
 
 
-  override def start(): Unit = super.start()
+  override def start(): Unit =  {
+    LOG.info("Starting Keedio source ...", this.getName)
+    super.start()
+    sourceVFScounter.start
+  }
 
-  override def stop(): Unit = super.stop()
+  override def stop(): Unit = {
+    sourceVFScounter.stop()
+    super.stop()
+  }
 
   def processMessage(data: Array[Byte]): Unit = {
     val event: Event = new SimpleEvent
-
-
     val headers: java.util.Map[String, String] = new util.HashMap[String, String]()
     headers.put("timestamp", String.valueOf(System.currentTimeMillis()));
     headers.put("sha1Hex", DigestUtils.sha1Hex(data));
@@ -133,6 +140,7 @@ class SourceVFS extends AbstractSource with Configurable with EventDrivenSource 
     event.setHeaders(headers)
     try {
       getChannelProcessor.processEvent(event)
+      sourceVFScounter.incrementEventCount()
     } catch {
       case ex: ChannelException => {
         Thread.sleep(2000)
