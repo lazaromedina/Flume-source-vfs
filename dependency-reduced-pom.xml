@@ -130,10 +130,6 @@
           <groupId>io.netty</groupId>
         </exclusion>
         <exclusion>
-          <artifactId>joda-time</artifactId>
-          <groupId>joda-time</groupId>
-        </exclusion>
-        <exclusion>
           <artifactId>servlet-api</artifactId>
           <groupId>org.mortbay.jetty</groupId>
         </exclusion>
