@@ -5,6 +5,7 @@ import java.nio.charset.Charset
 import java.util
 import java.util.concurrent.{ExecutorService, Executors}
 
+import org.apache.commons.vfs2.FileObject
 import org.apache.flume.conf.Configurable
 import org.apache.flume.event.SimpleEvent
 import org.apache.flume.source.AbstractSource
@@ -26,6 +27,7 @@ class SourceVFS extends AbstractSource with Configurable with EventDrivenSource 
   var sourceVFScounter = new org.keedio.flume.source.vfs.metrics.SourceCounterVfs("")
   val executor: ExecutorService = Executors.newFixedThreadPool(5)
   var sourceName: String = ""
+
   val listener = new StateListener {
     override def statusReceived(event: StateEvent): Unit = {
       event.getState.toString() match {
@@ -106,7 +108,8 @@ class SourceVFS extends AbstractSource with Configurable with EventDrivenSource 
     val workDir: String = context.getString("work.dir")
     val includePattern = context.getString("includePattern", """[^.]*\.*?""")
     LOG.debug("Source " + sourceName + " watching path : " + workDir + " and pattern " + includePattern)
-    val watchable = new WatchablePath(workDir, 0, 0, s"""$includePattern""".r)
+    val fileObject: FileObject = FileObjectBuilder.getFileObject(workDir)
+    val watchable = new WatchablePath(workDir, 0, 0, s"""$includePattern""".r, fileObject)
     watchable.addEventListener(listener)
   }
 

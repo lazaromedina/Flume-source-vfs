@@ -16,8 +16,12 @@ import org.apache.commons.vfs2.provider.ftp.FtpFileSystemConfigBuilder
   */
 object FileObjectBuilder {
 
-  private val fsManager = VFS.getManager
+//  private val fsManager = VFS.getManager
   private val options: FileSystemOptions = new FileSystemOptions()
+  private val fs = new StandardFileSystemManager
+  fs.setCacheStrategy(CacheStrategy.MANUAL)
+  fs.init()
+
 
   /**
     * Get a FileObject for the supported file system.
@@ -31,7 +35,7 @@ object FileObjectBuilder {
         val builder = FtpFileSystemConfigBuilder.getInstance()
         builder.setUserDirIsRoot(options, true)
         builder.setPassiveMode(options, true) //set to true if behind firewall
-        fsManager.resolveFile(uri, options)
+        fs.resolveFile(uri, options)
       }
       case _ =>
         val fs = new StandardFileSystemManager

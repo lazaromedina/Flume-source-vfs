@@ -4,8 +4,10 @@ import java.io.IOException
 import java.nio.file.{Files, Paths, StandardOpenOption}
 import java.util.{Calendar, Date}
 
+import org.apache.commons.vfs2.CacheStrategy
+import org.apache.commons.vfs2.impl.StandardFileSystemManager
 import org.junit._
-import org.keedio.flume.source.vfs.watcher.{WatchablePath, StateListener, StateEvent}
+import org.keedio.flume.source.vfs.watcher.{StateEvent, StateListener, WatchablePath}
 import org.slf4j.{Logger, LoggerFactory}
 
 import scala.util.matching.Regex
@@ -37,7 +39,10 @@ class WatchablePathTest {
         println("##### testWatchPath : monitor directory a send events according actions  ")
         val refreshTime = 2
         val startTime = 2
-        val watchable = new WatchablePath(csvDir, refreshTime, startTime, csvRegex)
+        val fs = new StandardFileSystemManager
+        fs.setCacheStrategy(CacheStrategy.MANUAL)
+        fs.init()
+        val watchable = new WatchablePath(csvDir, refreshTime, startTime, csvRegex, fs.resolveFile(csvDir))
         val listener = new StateListener {
             override def statusReceived(event: StateEvent): Unit = {
                 println("listener received event: " + event.getState.toString()

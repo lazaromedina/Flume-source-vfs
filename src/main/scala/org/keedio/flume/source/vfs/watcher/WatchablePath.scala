@@ -1,6 +1,6 @@
 package org.keedio.flume.source.vfs.watcher
 
-import java.util.concurrent.{Executors, ScheduledExecutorService, ScheduledFuture, TimeUnit}
+import java.util.concurrent._
 
 import org.apache.commons.vfs2._
 import org.apache.commons.vfs2.impl.DefaultFileMonitor
@@ -14,9 +14,7 @@ import scala.util.matching.Regex
   * Keedio
   */
 
-class WatchablePath(uri: String, refresh: Int, start: Int, regex: Regex) {
-
-  private val fileObject: FileObject = FileObjectBuilder.getFileObject(uri)
+class WatchablePath(uri: String, refresh: Int, start: Int, regex: Regex, fileObject: FileObject) {
 
   //list of susbcribers(observers) for changes in fileObject
   private val listeners: ListBuffer[StateListener] = new ListBuffer[StateListener]
@@ -131,8 +129,5 @@ class WatchablePath(uri: String, refresh: Int, start: Int, regex: Regex) {
     }
   }
 
-  def getPathForMonitor = fileObject
-
-  def getDefaultMonitor = defaultMonitor
 
 }
