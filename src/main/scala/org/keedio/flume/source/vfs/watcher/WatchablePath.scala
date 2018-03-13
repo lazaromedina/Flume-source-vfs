@@ -8,7 +8,6 @@ import org.apache.commons.vfs2.impl.DefaultFileMonitor
 import scala.collection.mutable.ListBuffer
 import scala.util.matching.Regex
 
-
 /**
   * Created by luislazaro on 4/9/15.
   * lalazaro@keedio.com
@@ -26,17 +25,26 @@ class WatchablePath(uri: String, refresh: Int, start: Int, regex: Regex) {
   private val fileListener = new FileListener {
     override def fileDeleted(fileChangeEvent: FileChangeEvent): Unit = {
       val eventDelete: StateEvent = new StateEvent(fileChangeEvent, State.ENTRY_DELETE)
-      fireEvent(eventDelete)
+      if (isValidFilenameAgainstRegex(eventDelete)) {
+        fireEvent(eventDelete)
+        fileObject.refresh()
+      }
     }
 
     override def fileChanged(fileChangeEvent: FileChangeEvent): Unit = {
       val eventChanged: StateEvent = new StateEvent(fileChangeEvent, State.ENTRY_MODIFY)
-      fireEvent(eventChanged)
+      if (isValidFilenameAgainstRegex(eventChanged)) {
+        fireEvent(eventChanged)
+        fileObject.refresh()
+      }
     }
 
     override def fileCreated(fileChangeEvent: FileChangeEvent): Unit = {
       val eventCreate: StateEvent = new StateEvent(fileChangeEvent, State.ENTRY_CREATE)
-      fireEvent(eventCreate)
+      if (isValidFilenameAgainstRegex(eventCreate)) {
+        fireEvent(eventCreate)
+        fileObject.refresh()
+      }
     }
   }
 
@@ -46,9 +54,8 @@ class WatchablePath(uri: String, refresh: Int, start: Int, regex: Regex) {
   defaultMonitor.setRecursive(true)
   defaultMonitor.setDelay(secondsToMiliseconds(refresh))
 
-
   // the number of threads to keep in the pool, even if they are idle
-  private val corePoolSize = 5
+  private val corePoolSize = 1
   private val scheduler: ScheduledExecutorService = Executors.newScheduledThreadPool(corePoolSize)
   //Creates and executes a one-shot action that becomes enabled after the given delay
   private val tasks: ScheduledFuture[_] = scheduler.schedule(
@@ -63,15 +70,23 @@ class WatchablePath(uri: String, refresh: Int, start: Int, regex: Regex) {
     * Filtering monitored files via regex is made after an event is fired.
     */
   def fireEvent(stateEvent: StateEvent): Unit = {
+    listeners foreach (_.statusReceived(stateEvent))
+  }
+
+  /**
+    * Check filename string against regex
+    *
+    * @param stateEvent
+    * @return
+    */
+  def isValidFilenameAgainstRegex(stateEvent: StateEvent) = {
     val fileName: String = stateEvent.getFileChangeEvent.getFile.getName.getBaseName
-    regex.findFirstIn(fileName).isDefined match {
-      case true => listeners foreach (_.statusReceived(stateEvent))
-      case false => ()
-    }
+    regex.findFirstIn(fileName).isDefined
   }
 
   /**
     * Add element to list of registered listeners
+    *
     * @param listener
     */
   def addEventListener(listener: StateListener): Unit = {
@@ -80,6 +95,7 @@ class WatchablePath(uri: String, refresh: Int, start: Int, regex: Regex) {
 
   /**
     * Remove element from list of registered listeners
+    *
     * @param listener
     */
   def removeEventListener(listener: StateListener): Unit = {
@@ -94,6 +110,7 @@ class WatchablePath(uri: String, refresh: Int, start: Int, regex: Regex) {
   /**
     *
     * auxiliar for using seconds where miliseconds is requiered
+    *
     * @param seconds
     * @return
     */
@@ -101,9 +118,9 @@ class WatchablePath(uri: String, refresh: Int, start: Int, regex: Regex) {
     seconds * 1000
   }
 
-
   /**
     * Make a method runnable and schedule for one-shot
+    *
     * @return
     */
   def getTaskToSchedule(): Runnable = {
@@ -113,7 +130,6 @@ class WatchablePath(uri: String, refresh: Int, start: Int, regex: Regex) {
       }
     }
   }
-
 
   def getPathForMonitor = fileObject
 
