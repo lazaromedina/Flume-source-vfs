@@ -1,16 +1,15 @@
 package org.keedio.flume.source.vfs.source
 
-import java.io.{BufferedReader, InputStream, InputStreamReader}
+import java.io._
 import java.nio.charset.Charset
 import java.util
 import java.util.concurrent.{ExecutorService, Executors}
 
-import org.apache.commons.codec.digest.DigestUtils
 import org.apache.flume.conf.Configurable
 import org.apache.flume.event.SimpleEvent
 import org.apache.flume.source.AbstractSource
 import org.apache.flume.{ChannelException, Context, Event, EventDrivenSource}
-import org.keedio.flume.source.vfs.watcher.{StateEvent, StateListener, WatchablePath}
+import org.keedio.flume.source.vfs.watcher._
 import org.slf4j.{Logger, LoggerFactory}
 
 import scala.collection.mutable
@@ -25,10 +24,10 @@ class SourceVFS extends AbstractSource with Configurable with EventDrivenSource 
   val LOG: Logger = LoggerFactory.getLogger(classOf[SourceVFS])
   val mapOfFiles = mutable.HashMap[String, Long]()
   var sourceVFScounter = new org.keedio.flume.source.vfs.metrics.SourceCounterVfs("")
-  val executor: ExecutorService = Executors.newFixedThreadPool(20)
+  val executor: ExecutorService = Executors.newFixedThreadPool(5)
+  var sourceName: String = ""
   val listener = new StateListener {
     override def statusReceived(event: StateEvent): Unit = {
-
       event.getState.toString() match {
         case "entry_create" => {
             val thread  = new Thread() {
@@ -55,8 +54,6 @@ class SourceVFS extends AbstractSource with Configurable with EventDrivenSource 
               }
             }
           }
-//          thread.start()
-//          Thread.sleep(50)
           executor.execute(thread)
         }
 
@@ -83,8 +80,6 @@ class SourceVFS extends AbstractSource with Configurable with EventDrivenSource 
 
             }
           }
-//          thread.start()
-//          Thread.sleep(50)
           executor.execute(thread)
         }
 
@@ -97,11 +92,8 @@ class SourceVFS extends AbstractSource with Configurable with EventDrivenSource 
                 fileName)
             }
           }
-//          thread.start
-//          Thread.sleep(50)
           executor.execute(thread)
           }
-
         case _ => LOG.error("Recieved event is not register")
       }
     }
@@ -109,15 +101,16 @@ class SourceVFS extends AbstractSource with Configurable with EventDrivenSource 
 
 
   override def configure(context: Context): Unit = {
-    sourceVFScounter = new org.keedio.flume.source.vfs.metrics.SourceCounterVfs("SOURCE." + this.getName)
+    sourceName = this.getName
+    sourceVFScounter = new org.keedio.flume.source.vfs.metrics.SourceCounterVfs("SOURCE." + sourceName)
     val workDir: String = context.getString("work.dir")
-    LOG.info("Source " + this.getName + " watching path : " + workDir)
-    val watchable = new WatchablePath(workDir, 5, 2, """[^.]*\.*?""".r)
+    val includePattern = context.getString("includePattern", """[^.]*\.*?""")
+    LOG.debug("Source " + sourceName + " watching path : " + workDir + " and pattern " + includePattern)
+    val watchable = new WatchablePath(workDir, 0, 0, s"""$includePattern""".r)
     watchable.addEventListener(listener)
   }
 
   override def start(): Unit =  {
-    LOG.info("Starting Keedio source ...", this.getName)
     super.start()
     sourceVFScounter.start
   }
@@ -127,11 +120,11 @@ class SourceVFS extends AbstractSource with Configurable with EventDrivenSource 
     super.stop()
   }
 
-  def processMessage(data: Array[Byte]): Unit = {
+  def processMessage(data: Array[Byte], fileName: String): Unit = {
     val event: Event = new SimpleEvent
     val headers: java.util.Map[String, String] = new util.HashMap[String, String]()
     headers.put("timestamp", String.valueOf(System.currentTimeMillis()));
-    headers.put("sha1Hex", DigestUtils.sha1Hex(data));
+    headers.put("fileName", fileName);
     event.setBody(data)
     event.setHeaders(headers)
     try {
@@ -152,7 +145,7 @@ class SourceVFS extends AbstractSource with Configurable with EventDrivenSource 
     val in: BufferedReader = new BufferedReader(new InputStreamReader(inputStream, Charset.defaultCharset()))
 
     Stream.continually(in.readLine()).takeWhile(_ != null) foreach {
-      in => processMessage(in.getBytes())
+      in => processMessage(in.getBytes(), filename)
     }
     in.close()
     true

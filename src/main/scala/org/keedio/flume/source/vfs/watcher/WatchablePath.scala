@@ -26,17 +26,17 @@ class WatchablePath(uri: String, refresh: Int, start: Int, regex: Regex) {
   private val fileListener = new FileListener {
     override def fileDeleted(fileChangeEvent: FileChangeEvent): Unit = {
       val eventDelete: StateEvent = new StateEvent(fileChangeEvent, State.ENTRY_DELETE)
-      fireEvent(eventDelete)
+      if (isValidFilenameAgainstRegex(eventDelete)) fireEvent(eventDelete)
     }
 
     override def fileChanged(fileChangeEvent: FileChangeEvent): Unit = {
       val eventChanged: StateEvent = new StateEvent(fileChangeEvent, State.ENTRY_MODIFY)
-      fireEvent(eventChanged)
+      if (isValidFilenameAgainstRegex(eventChanged)) fireEvent(eventChanged)
     }
 
     override def fileCreated(fileChangeEvent: FileChangeEvent): Unit = {
       val eventCreate: StateEvent = new StateEvent(fileChangeEvent, State.ENTRY_CREATE)
-      fireEvent(eventCreate)
+      if (isValidFilenameAgainstRegex(eventCreate)) fireEvent(eventCreate)
     }
   }
 
@@ -47,7 +47,7 @@ class WatchablePath(uri: String, refresh: Int, start: Int, regex: Regex) {
   defaultMonitor.setDelay(secondsToMiliseconds(refresh))
 
   // the number of threads to keep in the pool, even if they are idle
-  private val corePoolSize = 5
+  private val corePoolSize = 1
   private val scheduler: ScheduledExecutorService = Executors.newScheduledThreadPool(corePoolSize)
   //Creates and executes a one-shot action that becomes enabled after the given delay
   private val tasks: ScheduledFuture[_] = scheduler.schedule(
@@ -62,11 +62,17 @@ class WatchablePath(uri: String, refresh: Int, start: Int, regex: Regex) {
     * Filtering monitored files via regex is made after an event is fired.
     */
   def fireEvent(stateEvent: StateEvent): Unit = {
+    listeners foreach (_.statusReceived(stateEvent))
+  }
+
+  /**
+    * Check filename string against regex
+    * @param stateEvent
+    * @return
+    */
+  def isValidFilenameAgainstRegex(stateEvent: StateEvent) = {
     val fileName: String = stateEvent.getFileChangeEvent.getFile.getName.getBaseName
-    regex.findFirstIn(fileName).isDefined match {
-      case true => listeners foreach (_.statusReceived(stateEvent))
-      case false => ()
-    }
+    regex.findFirstIn(fileName).isDefined
   }
 
   /**

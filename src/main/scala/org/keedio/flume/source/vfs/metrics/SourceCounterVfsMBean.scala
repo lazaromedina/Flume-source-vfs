@@ -25,11 +25,17 @@ trait SourceCounterVfsMBean {
 
   def incrementEventCount(): Unit
 
-  def getThroughput: Long
+  def getEventThroughput(): Long
 
-  def getLastSent: Long
+  def getFileThroughput(): Long
 
-  def getLastSent_Human: String
+  def getLastEventSent: Long
+
+  def getLastFileSent: Long
+
+  def getLastEventSent_Human: String
+
+  def getLastFileSent_Human: String
 
   def incrementCountSizeProc(size: Long): Unit
 
@@ -43,6 +49,6 @@ trait SourceCounterVfsMBean {
 
   def getStartTime_Human: String
 
-  def getElapsedTime: String
+  def getRunningTime: String
 
 }

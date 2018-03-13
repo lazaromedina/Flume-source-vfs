@@ -23,7 +23,7 @@ object FileObjectBuilder {
     * @param uri
     * @return
     */
-  def getFileObject(uri: String): FileObject = {
+  def   getFileObject(uri: String): FileObject = {
     val scheme = getScheme(uri)
     scheme match {
       case "ftp" => {
