@@ -3,6 +3,7 @@ package org.keedio.flume.source.vfs.watcher
 import java.net.URI
 
 import org.apache.commons.vfs2._
+import org.apache.commons.vfs2.impl.StandardFileSystemManager
 import org.apache.commons.vfs2.provider.ftp.FtpFileSystemConfigBuilder
 /**
   * Created by luislazaro on 7/3/16.
@@ -32,7 +33,11 @@ object FileObjectBuilder {
         builder.setPassiveMode(options, true) //set to true if behind firewall
         fsManager.resolveFile(uri, options)
       }
-      case _ => fsManager.resolveFile(uri)
+      case _ =>
+        val fs = new StandardFileSystemManager
+        fs.setCacheStrategy(CacheStrategy.MANUAL)
+        fs.init()
+        fs.resolveFile(uri)
     }
   }
 
