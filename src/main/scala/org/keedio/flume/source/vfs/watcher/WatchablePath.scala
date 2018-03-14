@@ -26,7 +26,7 @@ class WatchablePath(uri: String, refresh: Int, start: Int, regex: Regex, fileObj
       if (isValidFilenameAgainstRegex(eventDelete)) {
         fireEvent(eventDelete)
         fileObject.refresh()
-      }
+       }
     }
 
     override def fileChanged(fileChangeEvent: FileChangeEvent): Unit = {
@@ -45,15 +45,15 @@ class WatchablePath(uri: String, refresh: Int, start: Int, regex: Regex, fileObj
       }
     }
   }
-
+  val a: Seq[FileObject] = fileObject.getChildren.toSeq.map(filechid => filechid.resolveFile(filechid.getName.getBaseName))
   //Thread based polling file system monitor with a 1 second delay.
   private val defaultMonitor: DefaultFileMonitor = new DefaultFileMonitor(fileListener)
-  defaultMonitor.addFile(fileObject)
-  defaultMonitor.setRecursive(true)
   defaultMonitor.setDelay(secondsToMiliseconds(refresh))
+  defaultMonitor.setRecursive(true)
+  defaultMonitor.addFile(fileObject)
 
   // the number of threads to keep in the pool, even if they are idle
-  private val corePoolSize = 1
+  private val corePoolSize = 5
   private val scheduler: ScheduledExecutorService = Executors.newScheduledThreadPool(corePoolSize)
   //Creates and executes a one-shot action that becomes enabled after the given delay
   private val tasks: ScheduledFuture[_] = scheduler.schedule(

@@ -17,24 +17,26 @@ import org.apache.commons.vfs2.provider.ftp.FtpFileSystemConfigBuilder
 object FileObjectBuilder {
 
 //  private val fsManager = VFS.getManager
-  private val options: FileSystemOptions = new FileSystemOptions()
-  private val fs = new StandardFileSystemManager
-  fs.setCacheStrategy(CacheStrategy.MANUAL)
-  fs.init()
-
+//  private val options: FileSystemOptions = new FileSystemOptions()
+//  private val fs = new StandardFileSystemManager
+//  fs.setCacheStrategy(CacheStrategy.MANUAL)
+//  fs.init()
 
   /**
     * Get a FileObject for the supported file system.
     * @param uri
     * @return
     */
-  def   getFileObject(uri: String): FileObject = {
+  def  getFileObject(uri: String): FileObject = {
     val scheme = getScheme(uri)
     scheme match {
       case "ftp" => {
+        val fs = new StandardFileSystemManager
+        val options: FileSystemOptions = new FileSystemOptions()
         val builder = FtpFileSystemConfigBuilder.getInstance()
         builder.setUserDirIsRoot(options, true)
         builder.setPassiveMode(options, true) //set to true if behind firewall
+        fs.init()
         fs.resolveFile(uri, options)
       }
       case _ =>
@@ -42,7 +44,7 @@ object FileObjectBuilder {
         fs.setCacheStrategy(CacheStrategy.MANUAL)
         fs.init()
         fs.resolveFile(uri)
-    }
+      }
   }
 
   /**

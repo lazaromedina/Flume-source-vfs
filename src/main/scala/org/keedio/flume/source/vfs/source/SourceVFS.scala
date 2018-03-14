@@ -109,7 +109,8 @@ class SourceVFS extends AbstractSource with Configurable with EventDrivenSource 
     val includePattern = context.getString("includePattern", """[^.]*\.*?""")
     LOG.debug("Source " + sourceName + " watching path : " + workDir + " and pattern " + includePattern)
     val fileObject: FileObject = FileObjectBuilder.getFileObject(workDir)
-    val watchable = new WatchablePath(workDir, 0, 0, s"""$includePattern""".r, fileObject)
+
+    val watchable = new WatchablePath(workDir, 5, 2, s"""$includePattern""".r, fileObject)
     watchable.addEventListener(listener)
   }
 
