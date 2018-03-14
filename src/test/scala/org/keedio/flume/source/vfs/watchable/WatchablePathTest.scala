@@ -22,10 +22,7 @@ class WatchablePathTest {
 
     val LOG: Logger = LoggerFactory.getLogger(classOf[WatchablePathTest])
     val csvRegex: Regex = """[^.]*\.csv?""".r
-
-    val userPath = System.getProperty("user.dir")
-    val fileSeparator = System.getProperty("file.separator")
-    val csvDir = userPath + fileSeparator + "src/test/resources/csv/"
+    val csvDir = System.getProperty("java.io.tmpdir")
 
 
     /**
@@ -68,7 +65,7 @@ class WatchablePathTest {
                     println("Action taken is creating new files")
                     try {
                         for (i <- 1 to 5)
-                            Files.createFile(Paths.get(s"src/test/resources/csv/file_Created${i}.csv"))
+                            Files.createFile(Paths.get(s"$csvDir" + s"/file_Created${i}.csv"))
 
                     } catch {
                         case e: IOException => LOG.error("I/O: conditionsGenerator", e)
@@ -79,7 +76,7 @@ class WatchablePathTest {
                     println("Action taken is appending to files")
                     try {
                         for (i <- 1 to 5)
-                        Files.write(Paths.get(s"src/test/resources/csv/file_Created${i}.csv"),
+                        Files.write(Paths.get(s"$csvDir" + s"/file_Created${i}.csv"),
                             (getCurrentDate + "\n").getBytes(),
                             StandardOpenOption.APPEND
                         )
@@ -93,7 +90,7 @@ class WatchablePathTest {
                     println("Action taken is deleting files")
                     try {
                         for (i <- 1 to 5)
-                            Files.deleteIfExists(Paths.get(s"src/test/resources/csv/file_Created${i}.csv"))
+                            Files.deleteIfExists(Paths.get(s"$csvDir" + s"/file_Created${i}.csv"))
 
                     } catch {
                         case e: IOException => LOG.error("I/O: conditionsGenerator", e)
@@ -102,7 +99,7 @@ class WatchablePathTest {
 
                 case 10 => println("end")
                     try {
-                        Files.deleteIfExists(Paths.get("src/test/resources/csv/file1.csv"))
+                        Files.deleteIfExists(Paths.get(s"$csvDir" + s"/file1.csv"))
                     } catch {
                         case e: IOException => LOG.error("I/O: conditionsGenerator", e)
                             assert(false)
