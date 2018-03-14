@@ -1,6 +1,6 @@
 package org.keedio.flume.source.vfs.watcher
 
-import java.util.concurrent.{Executors, ScheduledExecutorService, ScheduledFuture, TimeUnit}
+import java.util.concurrent._
 
 import org.apache.commons.vfs2._
 import org.apache.commons.vfs2.impl.DefaultFileMonitor
@@ -14,9 +14,7 @@ import scala.util.matching.Regex
   * Keedio
   */
 
-class WatchablePath(uri: String, refresh: Int, start: Int, regex: Regex) {
-
-  private val fileObject: FileObject = FileObjectBuilder.getFileObject(uri)
+class WatchablePath(uri: String, refresh: Int, start: Int, regex: Regex, fileObject: FileObject) {
 
   //list of susbcribers(observers) for changes in fileObject
   private val listeners: ListBuffer[StateListener] = new ListBuffer[StateListener]
@@ -28,7 +26,7 @@ class WatchablePath(uri: String, refresh: Int, start: Int, regex: Regex) {
       if (isValidFilenameAgainstRegex(eventDelete)) {
         fireEvent(eventDelete)
         fileObject.refresh()
-      }
+       }
     }
 
     override def fileChanged(fileChangeEvent: FileChangeEvent): Unit = {
@@ -47,15 +45,15 @@ class WatchablePath(uri: String, refresh: Int, start: Int, regex: Regex) {
       }
     }
   }
-
+  val a: Seq[FileObject] = fileObject.getChildren.toSeq.map(filechid => filechid.resolveFile(filechid.getName.getBaseName))
   //Thread based polling file system monitor with a 1 second delay.
   private val defaultMonitor: DefaultFileMonitor = new DefaultFileMonitor(fileListener)
-  defaultMonitor.addFile(fileObject)
-  defaultMonitor.setRecursive(true)
   defaultMonitor.setDelay(secondsToMiliseconds(refresh))
+  defaultMonitor.setRecursive(true)
+  defaultMonitor.addFile(fileObject)
 
   // the number of threads to keep in the pool, even if they are idle
-  private val corePoolSize = 1
+  private val corePoolSize = 5
   private val scheduler: ScheduledExecutorService = Executors.newScheduledThreadPool(corePoolSize)
   //Creates and executes a one-shot action that becomes enabled after the given delay
   private val tasks: ScheduledFuture[_] = scheduler.schedule(
@@ -131,8 +129,5 @@ class WatchablePath(uri: String, refresh: Int, start: Int, regex: Regex) {
     }
   }
 
-  def getPathForMonitor = fileObject
-
-  def getDefaultMonitor = defaultMonitor
 
 }
