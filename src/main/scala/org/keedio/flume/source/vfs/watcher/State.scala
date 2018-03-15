@@ -18,4 +18,5 @@ object State extends Serializable {
   final val ENTRY_CREATE: State = new State("entry_create")
   final val ENTRY_DELETE: State = new State("entry_delete")
   final val ENTRY_MODIFY: State = new State("entry_modify")
+  final val ENTRY_DISCOVER: State = new State("entry_discover")
 }
