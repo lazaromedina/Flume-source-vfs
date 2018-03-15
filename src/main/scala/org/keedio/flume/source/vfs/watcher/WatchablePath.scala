@@ -14,10 +14,12 @@ import scala.util.matching.Regex
   * Keedio
   */
 
-class WatchablePath(uri: String, refresh: Int, start: Int, regex: Regex, fileObject: FileObject) {
+class WatchablePath(uri: String, refresh: Int, start: Int, regex: Regex, fileObject: FileObject, listener: StateListener) {
 
   //list of susbcribers(observers) for changes in fileObject
   private val listeners: ListBuffer[StateListener] = new ListBuffer[StateListener]
+  private val children: Array[FileObject] = fileObject.getChildren
+  addEventListener(listener)
 
   //observer for changes to a file
   private val fileListener = new FileListener {
@@ -26,7 +28,7 @@ class WatchablePath(uri: String, refresh: Int, start: Int, regex: Regex, fileObj
       if (isValidFilenameAgainstRegex(eventDelete)) {
         fireEvent(eventDelete)
         fileObject.refresh()
-       }
+        }
     }
 
     override def fileChanged(fileChangeEvent: FileChangeEvent): Unit = {
@@ -45,12 +47,13 @@ class WatchablePath(uri: String, refresh: Int, start: Int, regex: Regex, fileObj
       }
     }
   }
-  val a: Seq[FileObject] = fileObject.getChildren.toSeq.map(filechid => filechid.resolveFile(filechid.getName.getBaseName))
+
   //Thread based polling file system monitor with a 1 second delay.
   private val defaultMonitor: DefaultFileMonitor = new DefaultFileMonitor(fileListener)
   defaultMonitor.setDelay(secondsToMiliseconds(refresh))
   defaultMonitor.setRecursive(true)
   defaultMonitor.addFile(fileObject)
+  children.foreach( child => fileListener.fileCreated(new FileChangeEvent(child)))
 
   // the number of threads to keep in the pool, even if they are idle
   private val corePoolSize = 5
