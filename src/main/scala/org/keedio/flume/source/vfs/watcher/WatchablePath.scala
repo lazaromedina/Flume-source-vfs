@@ -14,26 +14,28 @@ import scala.util.matching.Regex
   * Keedio
   */
 
-class WatchablePath(uri: String, refresh: Int, start: Int, regex: Regex, fileObject: FileObject) {
+class WatchablePath(uri: String, refresh: Int, start: Int, regex: Regex, fileObject: FileObject, listener: StateListener) {
 
   //list of susbcribers(observers) for changes in fileObject
   private val listeners: ListBuffer[StateListener] = new ListBuffer[StateListener]
+  private val children: Array[FileObject] = fileObject.getChildren
+  addEventListener(listener)
 
   //observer for changes to a file
-  private val fileListener = new FileListener {
+  private val fileListener = new VfsFileListener {
     override def fileDeleted(fileChangeEvent: FileChangeEvent): Unit = {
       val eventDelete: StateEvent = new StateEvent(fileChangeEvent, State.ENTRY_DELETE)
       if (isValidFilenameAgainstRegex(eventDelete)) {
         fireEvent(eventDelete)
-        fileObject.refresh()
-       }
+        //fileObject.refresh()
+        }
     }
 
     override def fileChanged(fileChangeEvent: FileChangeEvent): Unit = {
       val eventChanged: StateEvent = new StateEvent(fileChangeEvent, State.ENTRY_MODIFY)
       if (isValidFilenameAgainstRegex(eventChanged)) {
         fireEvent(eventChanged)
-        fileObject.refresh()
+        //fileObject.refresh()
       }
     }
 
@@ -41,16 +43,25 @@ class WatchablePath(uri: String, refresh: Int, start: Int, regex: Regex, fileObj
       val eventCreate: StateEvent = new StateEvent(fileChangeEvent, State.ENTRY_CREATE)
       if (isValidFilenameAgainstRegex(eventCreate)) {
         fireEvent(eventCreate)
-        fileObject.refresh()
+        //fileObject.refresh()
+      }
+    }
+
+    override def fileDiscovered(fileChangeEvent: FileChangeEvent): Unit = {
+      val eventDiscovered: StateEvent = new StateEvent(fileChangeEvent, State.ENTRY_DISCOVER)
+      if (isValidFilenameAgainstRegex(eventDiscovered)) {
+        fireEvent(eventDiscovered)
+        //fileObject.refresh()
       }
     }
   }
-  val a: Seq[FileObject] = fileObject.getChildren.toSeq.map(filechid => filechid.resolveFile(filechid.getName.getBaseName))
+
   //Thread based polling file system monitor with a 1 second delay.
   private val defaultMonitor: DefaultFileMonitor = new DefaultFileMonitor(fileListener)
   defaultMonitor.setDelay(secondsToMiliseconds(refresh))
   defaultMonitor.setRecursive(true)
   defaultMonitor.addFile(fileObject)
+  children.foreach( child => fileListener.fileDiscovered(new FileChangeEvent(child)))
 
   // the number of threads to keep in the pool, even if they are idle
   private val corePoolSize = 5

@@ -39,13 +39,15 @@ class WatchablePathTest {
         val fs = new StandardFileSystemManager
         fs.setCacheStrategy(CacheStrategy.MANUAL)
         fs.init()
-        val watchable = new WatchablePath(csvDir, refreshTime, startTime, csvRegex, fs.resolveFile(csvDir))
+
         val listener = new StateListener {
             override def statusReceived(event: StateEvent): Unit = {
                 println("listener received event: " + event.getState.toString()
                     + " on element " + event.getFileChangeEvent.getFile.getName )
             }
         }
+
+        val watchable = new WatchablePath(csvDir, refreshTime, startTime, csvRegex, fs.resolveFile(csvDir), listener)
         watchable.addEventListener(listener)
         conditionsGenerator(10, 2000) //(10 iterations * 2 seconds)
         watchable.removeEventListener(listener)
