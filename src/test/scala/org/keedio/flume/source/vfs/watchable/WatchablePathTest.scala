@@ -47,7 +47,7 @@ class WatchablePathTest {
             }
         }
 
-        val watchable = new WatchablePath(csvDir, refreshTime, startTime, csvRegex, fs.resolveFile(csvDir), listener)
+        val watchable = new WatchablePath(csvDir, refreshTime, startTime, csvRegex, fs.resolveFile(csvDir), listener, false, "source-test")
         watchable.addEventListener(listener)
         conditionsGenerator(10, 2000) //(10 iterations * 2 seconds)
         watchable.removeEventListener(listener)

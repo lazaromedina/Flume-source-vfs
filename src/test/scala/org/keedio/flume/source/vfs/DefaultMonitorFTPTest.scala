@@ -1,10 +1,8 @@
 package org.keedio.flume.source.vfs
 
 import org.apache.commons.vfs2._
-import org.apache.commons.vfs2.impl._
+import org.apache.commons.vfs2.impl.{StandardFileSystemManager, _}
 import org.apache.commons.vfs2.provider.ftp._
-import org.junit._
-import org.apache.commons.vfs2.impl.StandardFileSystemManager
 
 
 /**
@@ -17,7 +15,7 @@ class DefaultMonitorFTPTest {
       /**
        * Test vfs2 on FTP filesytem
        */
-      @Test
+      //@Test
       def testApiFileMonitorFTPFileSystem(): Unit = {
             val fsManager = new StandardFileSystemManager()
             fsManager.setCacheStrategy(CacheStrategy.ON_RESOLVE)

@@ -33,6 +33,7 @@ class SourceVFS extends AbstractSource with Configurable with EventDrivenSource 
   var workDir: String = ""
   var includePattern: String = ""
   var processedDir: String = ""
+  var processDiscovered: Boolean = true
 
   val listener = new StateListener {
     override def statusReceived(event: StateEvent): Unit = {
@@ -163,6 +164,7 @@ class SourceVFS extends AbstractSource with Configurable with EventDrivenSource 
         } //entry_discover
 
         case _ => LOG.error("Recieved event is not register.")
+
       }
     }
   }
@@ -178,13 +180,14 @@ class SourceVFS extends AbstractSource with Configurable with EventDrivenSource 
     if (Files.exists(Paths.get(statusFile))) {
       mapOfFiles = loadMap(statusFile)
     }
+    processDiscovered = context.getString("process.discovered.files", "true").toBoolean
   }
 
   override def start(): Unit = {
     super.start()
     sourceVFScounter.start
     val fileObject: FileObject = FileObjectBuilder.getFileObject(workDir)
-    val watchable = new WatchablePath(workDir, 5, 2, s"""$includePattern""".r, fileObject, listener)
+    val watchable = new WatchablePath(workDir, 5, 2, s"""$includePattern""".r, fileObject, listener, processDiscovered, sourceName)
   }
 
   override def stop(): Unit = {

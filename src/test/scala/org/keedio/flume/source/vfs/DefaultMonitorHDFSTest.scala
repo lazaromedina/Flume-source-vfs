@@ -2,7 +2,6 @@ package org.keedio.flume.source.vfs
 
 import org.apache.commons.vfs2._
 import org.apache.commons.vfs2.impl.DefaultFileMonitor
-import org.junit.Test
 
 
 /**
@@ -15,7 +14,7 @@ class DefaultMonitorHDFSTest {
     /**
      * @see https://commons.apache.org/proper/commons-vfs/filesystems.html
      */
-    @Test
+    //@Test
     def testApiFileMonitorHDFSFileSystem(): Unit = {
         val fsManager = VFS.getManager
 
