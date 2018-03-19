@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.keedio.flume.source.vfs</groupId>
   <artifactId>flume-source-vfs</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
+  <version>0.0.3</version>
   <description>Keedio's flume-source-vfs is a source componente for Apache flume for supported protocols.
   </description>
   <licenses>
@@ -33,9 +33,26 @@
     <scala.version>2.10.4</scala.version>
     <junit.version>4.11</junit.version>
     <slf4j.version>1.7.12</slf4j.version>
-    <flume.version>1.6.0</flume.version>
+    <flume.version>1.7.0</flume.version>
 
   </properties>
+
+
+  <!--<repositories>-->
+    <!--<repository>-->
+      <!--<id>JBoss repository</id>-->
+      <!--<url>http://repository.jboss.org/nexus/content/groups/public/</url>-->
+      <!--<layout>default</layout>-->
+      <!--<releases>-->
+        <!--<enabled>true</enabled>-->
+        <!--<updatePolicy>never</updatePolicy>-->
+      <!--</releases>-->
+      <!--<snapshots>-->
+        <!--<enabled>true</enabled>-->
+        <!--<updatePolicy>never</updatePolicy>-->
+      <!--</snapshots>-->
+    <!--</repository>-->
+  <!--</repositories>-->
 
   <dependencies>
     <dependency>
@@ -50,6 +67,18 @@
     <!--</dependency>-->
 
     <dependency>
+      <groupId>commons-net</groupId>
+      <artifactId>commons-net</artifactId>
+      <version>3.6</version>
+    </dependency>
+
+    <dependency>
+      <groupId>joda-time</groupId>
+      <artifactId>joda-time</artifactId>
+      <version>2.9.7</version>
+    </dependency>
+
+    <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
       <version>${slf4j.version}</version>
@@ -60,10 +89,17 @@
       <version>1.2</version>
     </dependency>
 
+    <!-- https://mvnrepository.com/artifact/commons-io/commons-io -->
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+      <version>2.5</version>
+    </dependency>
+
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-vfs2</artifactId>
-      <version>2.1-SNAPSHOT</version>
+      <version>2.2</version>
     </dependency>
     <dependency>
       <groupId>junit</groupId>

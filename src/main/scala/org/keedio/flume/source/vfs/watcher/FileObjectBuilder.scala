@@ -2,8 +2,9 @@ package org.keedio.flume.source.vfs.watcher
 
 import java.net.URI
 
+import org.apache.commons.vfs2._
+import org.apache.commons.vfs2.impl.StandardFileSystemManager
 import org.apache.commons.vfs2.provider.ftp.FtpFileSystemConfigBuilder
-import org.apache.commons.vfs2.{FileObject, FileSystemOptions, VFS}
 /**
   * Created by luislazaro on 7/3/16.
   * lalazaro@keedio.com
@@ -15,25 +16,35 @@ import org.apache.commons.vfs2.{FileObject, FileSystemOptions, VFS}
   */
 object FileObjectBuilder {
 
-  private val fsManager = VFS.getManager
-  private val options: FileSystemOptions = new FileSystemOptions()
+//  private val fsManager = VFS.getManager
+//  private val options: FileSystemOptions = new FileSystemOptions()
+//  private val fs = new StandardFileSystemManager
+//  fs.setCacheStrategy(CacheStrategy.MANUAL)
+//  fs.init()
 
   /**
     * Get a FileObject for the supported file system.
     * @param uri
     * @return
     */
-  def getFileObject(uri: String): FileObject = {
+  def  getFileObject(uri: String): FileObject = {
     val scheme = getScheme(uri)
     scheme match {
       case "ftp" => {
+        val fs = new StandardFileSystemManager
+        val options: FileSystemOptions = new FileSystemOptions()
         val builder = FtpFileSystemConfigBuilder.getInstance()
-        builder.setUserDirIsRoot(options, false)
+        builder.setUserDirIsRoot(options, true)
         builder.setPassiveMode(options, true) //set to true if behind firewall
-        fsManager.resolveFile(uri, options)
+        fs.init()
+        fs.resolveFile(uri, options)
       }
-      case _ => fsManager.resolveFile(uri)
-    }
+      case _ =>
+        val fs = new StandardFileSystemManager
+        fs.setCacheStrategy(CacheStrategy.MANUAL)
+        fs.init()
+        fs.resolveFile(uri)
+      }
   }
 
   /**
